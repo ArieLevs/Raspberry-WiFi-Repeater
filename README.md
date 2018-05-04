@@ -37,11 +37,16 @@ sudo apt-get upgrade
 sudo apt-get install dnsmasq hostapd bridge-utils
 ```
 
-Now configure static ip for wlan1 `sudo vi /etc/dhcpcd.conf`
+Now configure static IP for wlan1 and static IP for wlan0 `sudo vi /etc/dhcpcd.conf`
 Add to the end of file lines:
 ```
 interface wlan1
     static ip_address=10.0.0.2/24
+    static routers=10.0.0.1
+    static domain_name_servers=10.0.0.1 8.8.8.8
+
+interface wlan0
+    static ip_address=10.0.1.1/24
 ```
 
 Restart the service `sudo service dhcpcd restart`
@@ -61,20 +66,21 @@ interface=wlan0
 
 Configure Access Point (hostapd)
 --------------------------------
-type `sudo nano /etc/hostapd/hostapd.conf`
+type `sudo vi /etc/hostapd/hostapd.conf`
 And append
 ```
 interface=wlan0
 driver=nl80211
-ssid=NameOfNetwork
+
+ssid=[AP_SSID]
 hw_mode=g
-channel=7
+channel=6
 wmm_enabled=0
 macaddr_acl=0
 auth_algs=1
 ignore_broadcast_ssid=0
 wpa=2
-wpa_passphrase=AardvarkBadgerHedgehog
+wpa_passphrase=[AP_PASS]
 wpa_key_mgmt=WPA-PSK
 wpa_pairwise=TKIP
 rsn_pairwise=CCMP
@@ -107,7 +113,7 @@ Then `sudo reboot`
 When device boots up run
 ```
 sudo brctl addbr br0
-sudo brctl addif br0 eth0
+sudo brctl addif br0 wlan1
 ```
 
 
