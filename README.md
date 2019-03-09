@@ -4,21 +4,32 @@ Raspberry pi 3 as wifi repeater
 
 This is a simple guide to set Raspberry pi 3 as wifi repeater, i know there are many guides out there, [including the official](https://github.com/raspberrypi/documentation/blob/master/configuration/wireless/access-point.md), but none of them worked 100% without modifications.
 
-Based on:
-
+Based on: `Linux raspberrypi 4.9.80-v7+`
 
 In order to achieve our goal we will need to setup two separate interfaces,
-You will need additional wifi usb device.
+You will need additional wifi usb device or use the ethernet connection.
 
 Lets assume your home lan address is 10.0.0.0/24,
 We will extend this network using another lan at address 10.0.1.0/24.
 
-I'll assume the OS is up and running, and the second usb wifi is working.
-When doing `ifconfig` you should have 4 interfaces,
-loopback, eth0 for lan cable connection, wlan0 if the onboard wifi
-and wlan1 is the usb wifi interface.
+I'll assume the OS is up and running, and the second usb wifi\ethernet is working.
 
-wlan1 will just connect to your home SSID at 10.0.0.0/24  
+Installing via Ansible:
+-----------------------
+Execute from project root directory
+```bash
+ansible-playbook -u pi --ask-pass \
+    -i "[RASPBERRY_PI/DNS]," \
+    ansible/setup_repeater.yaml
+```
+
+Manual Installation:
+--------------------
+When doing `ip a` you should have 4\3 interfaces,
+loopback, eth0 for lan cable connection, wlan0 is the onboard wifi
+and wlan1 is the usb wifi interface if connected.
+
+wlan1 or eth0 will connect to your home LAN at 10.0.0.0/24  
 wlan0 will create new network using 10.0.1.0/24
 then a bridge (br0) will bridge the interfaces.
 
@@ -40,10 +51,17 @@ sudo apt-get install dnsmasq hostapd bridge-utils
 Now configure static IP for wlan1 and static IP for wlan0 `sudo vi /etc/dhcpcd.conf`
 Add to the end of file lines:
 ```
+## If using additional wifi
 interface wlan1
     static ip_address=10.0.0.2/24
     static routers=10.0.0.1
     static domain_name_servers=10.0.0.1 8.8.8.8
+
+## If using ethernet
+#interface eth0
+#    static ip_address=10.0.0.2/24
+#    static routers=10.0.0.1
+#    static domain_name_servers=10.0.0.1 8.8.8.8
 
 interface wlan0
     static ip_address=10.0.1.1/24
@@ -60,7 +78,7 @@ sudo vi /etc/dnsmasq.conf
 And append
 ```
 interface=wlan0
-    dhcp-range=10.0.1.2,10.0.1.100,255.255.255.0,24h
+    dhcp-range=10.0.1.2,10.0.1.100,255.255.255.0,12h
 ```
 
 
@@ -113,7 +131,12 @@ Then `sudo reboot`
 When device boots up run
 ```
 sudo brctl addbr br0
+
+## If using wlan0
 sudo brctl addif br0 wlan1
+
+## If using eth0
+#sudo brctl addif br0 eth0
 ```
 
 

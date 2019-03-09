@@ -1,0 +1,104 @@
+
+- name: Update and upgrade apt packages
+  apt:
+    upgrade: yes
+    update_cache: yes
+
+- name: Install requiered packages
+  apt:
+    pkg: ['dnsmasq', 'hostapd']
+    state: latest
+
+- name: Stop hostapd, dnsmasq, if running
+  systemd:
+    name: "{{ item }}.service"
+    state: stopped
+  with_items:
+    - hostapd
+    - dnsmasq
+
+#- name: Reboot
+#  include_role:
+#    name: reboot_raspberry
+
+- name: Set dhcpcd.conf file
+  template:
+    src: dhcpcd.conf.j2
+    dest: /etc/dhcpcd.conf
+    owner: root
+    group: root
+    mode: 644
+
+- name: Restart dhcpcd and enable it
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: dhcpcd.service
+    enabled: yes
+
+- name: Set dnsmasq.conf file
+  template:
+    src: dnsmasq.conf.j2
+    dest: /etc/dnsmasq.conf
+    owner: root
+    group: root
+    mode: 644
+
+- name: Set hostapd.conf file
+  template:
+    src: hostapd.conf.j2
+    dest: /etc/hostapd/hostapd.conf
+    owner: root
+    group: root
+    mode: 644
+
+- name: Set hostapd daemon file
+  template:
+    src: hostapd_daemon.j2
+    dest: /etc/default/hostapd
+    owner: root
+    group: root
+    mode: 644
+
+- name: "Check if hostapd service -> /dev/null exists"
+  stat:
+    path: /etc/systemd/system/hostapd.service
+  register: hostapd_link_exists
+
+- name: "Remove hostapd service -> /dev/null link"
+  file:
+    path: /etc/systemd/system/hostapd.service
+    state: absent
+  when: hostapd_link_exists.stat.exists
+
+- name: Restart hostapd, dnsmasq and enable them
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: "{{ item }}.service"
+    enabled: yes
+  with_items:
+    - hostapd
+    - dnsmasq
+
+- name: Set sysctl.conf file
+  template:
+    src: sysctl.conf.j2
+    dest: /etc/sysctl.conf
+    owner: root
+    group: root
+    mode: 644
+
+- name: Update iptables
+  shell: iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+
+- name: Update iptables
+  shell: sh -c "iptables-save > /etc/iptables.ipv4.nat"
+
+- name: Set rc.local file
+  template:
+    src: rc.local.j2
+    dest: /etc/rc.local
+    owner: root
+    group: root
+    mode: 733

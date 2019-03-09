@@ -1,0 +1,86 @@
+
+- name: Identify Network Interfaces
+  debug:
+    msg: "Raspberry pi has these interfaces: {{ ansible_interfaces }}"
+  register: has_external_wifi_interface
+
+- name: Identify wlan1 interface | exists
+  debug:
+    msg: "Since wlan1 exists, setting up bridge between wlan0 and wlan1"
+  when: "'wlan1' in ansible_interfaces"
+
+- fail:
+    msg: "wlan1 exists, but no connection data provided, please pass ssid_name/ssid_pass variables"
+  when: "'wlan1' in ansible_interfaces and (ssid_name is undefined or ssid_pass is undefined)"
+
+- name: Identify wlan1 interface | not exists
+  debug:
+    msg: "Since wlan1 does not exist, setting up bridge between wlan0 and eth0"
+  when: "'wlan1' not in ansible_interfaces"
+
+- name: Update and upgrade apt packages
+  apt:
+    upgrade: yes
+    update_cache: yes
+
+- name: Install requiered packages
+  apt:
+    pkg: ['hostapd', 'bridge-utils']
+    state: latest
+
+- name: Stop hostapd, dnsmasq, if running
+  systemd:
+    name: "{{ item }}.service"
+    state: stopped
+  with_items:
+    - hostapd
+
+- name: Set wpa_supplicant.conf file
+  template:
+    src: wpa_supplicant.conf.j2
+    dest: /etc/wpa_supplicant/wpa_supplicant.conf
+    owner: root
+    group: root
+    mode: 600
+  when: "'wlan1' in ansible_interfaces"
+
+- name: Add bridge
+  shell: brctl addbr br0
+  ignore_errors: yes
+
+- name: bridge br0 to wlan1
+  shell: brctl addif br0 wlan1
+  when: "'wlan1' in ansible_interfaces"
+  ignore_errors: yes
+
+- name: bridge br0 to eth0
+  shell: brctl addif br0 eth0
+  when: "'wlan1' not in ansible_interfaces"
+  ignore_errors: yes
+
+- name: Set interfaces file
+  template:
+    src: network_interfaces.j2
+    dest: /etc/network/interfaces
+    owner: root
+    group: root
+    mode: 644
+
+- name: Set hostapd.conf file
+  template:
+    src: hostapd.conf.j2
+    dest: /etc/hostapd/hostapd.conf
+    owner: root
+    group: root
+    mode: 644
+
+- name: Set hostapd daemon file
+  template:
+    src: hostapd_daemon.j2
+    dest: /etc/default/hostapd
+    owner: root
+    group: root
+    mode: 644
+
+- name: Unconditionally reboot the machine with all defaults
+  reboot:

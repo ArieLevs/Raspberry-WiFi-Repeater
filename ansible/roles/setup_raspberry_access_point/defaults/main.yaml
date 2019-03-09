@@ -1,0 +1,8 @@
+
+default_ap_ip_addr: 10.0.1.1/24
+default_ap_start_ip_addr: 10.0.1.2
+default_ap_end_ip_addr: 10.0.1.100
+default_ap_subnet_mask: 255.255.255.0
+
+default_ap_ssid_name: nalkinscloud
+default_ap_ssid_pass: nalkinscloud

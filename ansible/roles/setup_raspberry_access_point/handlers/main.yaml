@@ -1,0 +1,23 @@
+---
+  - name: reboot
+    shell: shutdown -r
+    notify: pause 30 seconds
+
+  - name: pause 30 seconds
+    pause: seconds=30
+    notify: wait for host respond to ping
+
+  - name: wait for host respond to ping
+    local_action: shell ansible -u pi -m ping {{ inventory_hostname }}
+    register: result
+    until: result.rc == 0
+    retries: 30
+    delay: 10
+    notify: print up time
+
+  - name: print up time
+    shell: uptime
+    notify: print kernel version
+
+  - name: print kernel version
+    shell: uname -sr

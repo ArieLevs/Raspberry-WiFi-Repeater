@@ -1,0 +1,16 @@
+
+- name: Setup Raspberry PI Repeater
+  hosts: all
+  become: true
+
+#  vars_prompt:
+#    - name: ap_ssid_name
+#      prompt: "Enter SSID for access point setup"
+#      private: no
+#    - name: ap_ssid_pass
+#      prompt: "Enter password for access point setup"
+#      private: no
+
+  roles:
+    - setup_raspberry_access_point
+    - setup_raspberry_repeater
