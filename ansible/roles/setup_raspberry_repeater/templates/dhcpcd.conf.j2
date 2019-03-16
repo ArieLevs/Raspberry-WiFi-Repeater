@@ -44,11 +44,6 @@ slaac private
 #static routers=192.168.0.1
 #static domain_name_servers=192.168.0.1 8.8.8.8 fd51:42f8:caae:d92e::1
 
-#interface eth0
-#    static ip_address=10.99.0.49/24
-#    static routers=10.99.0.1
-#    static domain_name_servers=10.99.0.1 8.8.8.8
-
 denyinterfaces wlan0
 {% if 'wlan1' in ansible_interfaces %}
 denyinterfaces wlan1
