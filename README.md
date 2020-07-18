@@ -2,7 +2,7 @@
 Raspberry pi 3 as wifi repeater
 ===============================
 
-This is a simple guide to set Raspberry pi 3 as wifi repeater, i know there are many guides out there, [including the official](https://github.com/raspberrypi/documentation/blob/master/configuration/wireless/access-point.md), but none of them worked 100% without modifications.
+This is a simple guide to set Raspberry pi 3 as wifi repeater, i know there are many guides out there, [including the official](https://github.com/raspberrypi/documentation/blob/master/configuration/wireless/access-point-routed.md), but none of them worked 100% without modifications.
 
 Based on: `Linux raspberrypi 4.9.80-v7+`
 
