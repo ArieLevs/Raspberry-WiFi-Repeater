@@ -1,8 +1,8 @@
 
-Raspberry pi 3 as wifi repeater
+Raspberry pi as wifi repeater
 ===============================
 
-This is a simple guide to set Raspberry pi 3 as wifi repeater, i know there are many guides out there, [including the official](https://github.com/raspberrypi/documentation/blob/master/configuration/wireless/access-point-routed.md), but none of them worked 100% without modifications.
+This is a simple guide to set Raspberry pi as wifi repeater, i know there are many guides out there, [including the official](https://github.com/raspberrypi/documentation/blob/master/configuration/wireless/access-point-routed.md), but none of them worked 100% without modifications.
 
 Based on: `Linux raspberrypi 4.9.80-v7+`
 
@@ -12,9 +12,31 @@ You will need additional wifi usb device or use the ethernet connection.
 Lets assume your home lan address is 10.0.0.0/24,
 We will extend this network using another lan at address 10.0.1.0/24.
 
-I'll assume the OS is up and running, and the second usb wifi\ethernet is working.
+I'll assume the OS is up and running, and the wifi\ethernet interface to the router "10.0.0.0/24" is set up, .
 
-Installing via Ansible:
+```
+                                               this interface is being configured
+                                                    (10.0.1.0/24 network)
+# Option 1                                                    |
+                                                              |
+                 +- Router ----+          +--- Raspberry ---+ /        +- Laptop ----+
+                 | DHCP server |          | 10.0.0.18       |/         | WLAN Client |
+(Internet)---WAN-+             +---LAN----|/        WLAN AP +-)))  (((-+             |
+                 | 10.0.0.0/24 |          |        10.0.1.1 |          | 10.0.1.36   |
+                 +-------------+          +-----------------+          +-------------+
+
+
+# Option 2
+                 +- Router ----+          +--- Raspberry ---+          +- Laptop ----+
+                 | DHCP server |   WiFi   | 10.0.0.18       |          | WLAN Client |
+(Internet)---WAN-+             +-)))  (((-|/        WLAN AP +-)))  (((-+             |
+                 | 10.0.0.0/24 |          |        10.0.1.1 |          | 10.0.1.36   |
+                 +-------------+          +-----------------+          +-------------+
+```
+
+
+
+Automatic Installing via Ansible:
 -----------------------
 Execute from project root directory  
 (note for the `,` below, or the ip/dns will be considered a hosts inventory filename)
@@ -24,14 +46,17 @@ ansible-playbook -u pi --ask-pass \
     ansible/setup_repeater.yaml
 ```
 
-install example with custom values
+install example with custom values,  
+the configured device ip from above example is `10.0.0.18`
 ```bash
 ansible-playbook -u pi --ask-pass \
-    -i "[RASPBERRY_PI/DNS]," \
+    -i "10.0.0.18," \
     ansible/setup_repeater.yaml \
     -e ap_ssid_name=SSID \
     -e ap_ssid_pass=PASSWORD
 ```
+
+* default password for `pi` user is: `raspberry`
 
 Manual Installation:
 --------------------
