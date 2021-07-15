@@ -1,3 +1,6 @@
-
 interface=wlan0
 	dhcp-range={{ ap_start_ip_addr | default(default_ap_start_ip_addr) }},{{ ap_end_ip_addr | default(default_ap_end_ip_addr) }},{{ ap_subnet_mask | default(default_ap_subnet_mask) }},12h
+
+# Delays sending DHCPOFFER and proxydhcp replies for at least the specified number of seconds.
+dhcp-mac=set:client_is_a_pi,B8:27:EB:*:*:*
+dhcp-reply-delay=tag:client_is_a_pi,2

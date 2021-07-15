@@ -1,7 +1,6 @@
-
+country_code={{ country | default(default_country) }}
 interface=wlan0
 driver=nl80211
-#bridge=br0
 
 ssid={{ ap_ssid_name | default(default_ap_ssid_name) }}
 hw_mode=g
