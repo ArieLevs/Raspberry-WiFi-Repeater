@@ -26,15 +26,19 @@ option rapid_commit
 # A list of options to request from the DHCP server.
 option domain_name_servers, domain_name, domain_search, host_name
 option classless_static_routes
-# Most distributions have NTP support.
-option ntp_servers
+
 # Respect the network MTU. This is applied to DHCP routes.
 option interface_mtu
+
+# Most distributions have NTP support.
+#option ntp_servers
 
 # A ServerID is required by RFC2131.
 require dhcp_server_identifier
 
-# Generate Stable Private IPv6 Addresses instead of hardware based ones
+# Generate SLAAC address using the Hardware Address of the interface
+#slaac hwaddr
+# OR generate Stable Private IPv6 Addresses based from the DUID
 slaac private
 
 # Example static IP configuration:
@@ -44,9 +48,16 @@ slaac private
 #   static routers=192.168.0.1
 #   static domain_name_servers=192.168.0.1 8.8.8.8 fd51:42f8:caae:d92e::1
 
+#denyinterfaces wlan0
+#{% if 'wlan1' in ansible_interfaces %}
+#denyinterfaces wlan1
+#{% else %}
+#denyinterfaces eth0
+#{% endif %}
+
 interface wlan0
     static ip_address={{ ap_ip_addr | default(default_ap_ip_addr) }}
-	nohook wpa_supplicant
+    nohook wpa_supplicant
 
 # It is possible to fall back to a static IP if DHCP fails:
 # define static profile

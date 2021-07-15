@@ -20,20 +20,40 @@
 
 - name: Bridge | Update and upgrade apt packages
   apt:
-    upgrade: yes
+    upgrade: 'yes'
     update_cache: yes
 
 - name: Bridge | Install requiered packages
   apt:
-    pkg: ['hostapd', 'bridge-utils']
+    pkg: ['bridge-utils']
     state: latest
 
-- name: Bridge | Stop hostapd, dnsmasq, if running
-  systemd:
-    name: "{{ item }}.service"
-    state: stopped
-  with_items:
-    - hostapd
+- name: Access Point | Set sysctl.conf file
+  template:
+    src: sysctl.conf.j2
+    dest: /etc/sysctl.conf
+    owner: root
+    group: root
+    mode: 644
+
+- name: Bridge | Update iptables with eth0
+  shell: iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+  when: "'wlan1' not in ansible_interfaces"
+
+- name: Bridge | Update iptables with wlan1
+  shell: iptables -t nat -A POSTROUTING -o wlan1 -j MASQUERADE
+  when: "'wlan1' in ansible_interfaces"
+
+- name: Bridge | Update iptables
+  shell: sh -c "iptables-save > /etc/iptables.ipv4.nat"
+
+- name: Bridge | Set rc.local file
+  template:
+    src: rc.local.j2
+    dest: /etc/rc.local
+    owner: root
+    group: root
+    mode: 733
 
 - name: Bridge | Set wpa_supplicant.conf file
   template:
@@ -44,20 +64,6 @@
     mode: 600
   when: "'wlan1' in ansible_interfaces"
 
-- name: Bridge | Add bridge
-  shell: brctl addbr br0
-  ignore_errors: yes
-
-- name: Bridge | bridge br0 to wlan1
-  shell: brctl addif br0 wlan1
-  when: "'wlan1' in ansible_interfaces"
-  ignore_errors: yes
-
-- name: Bridge | bridge br0 to eth0
-  shell: brctl addif br0 eth0
-  when: "'wlan1' not in ansible_interfaces"
-  ignore_errors: yes
-
 - name: Bridge | Set interfaces file
   template:
     src: network_interfaces.j2
@@ -65,22 +71,7 @@
     owner: root
     group: root
     mode: 644
-
-- name: Bridge | Set hostapd.conf file
-  template:
-    src: hostapd.conf.j2
-    dest: /etc/hostapd/hostapd.conf
-    owner: root
-    group: root
-    mode: 644
-
-- name: Bridge | Set hostapd daemon file
-  template:
-    src: hostapd_daemon.j2
-    dest: /etc/default/hostapd
-    owner: root
-    group: root
-    mode: 644
+  when: "'wlan1' in ansible_interfaces"
 
 - name: Bridge | Reboot the machine
   reboot:

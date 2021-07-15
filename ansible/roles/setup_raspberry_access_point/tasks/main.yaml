@@ -1,7 +1,15 @@
 
+- name: Bridge | Identify Network Interfaces
+  debug:
+    msg: "Raspberry pi has these interfaces: {{ ansible_interfaces }}"
+
+- fail:
+    msg: "wlan0 does not exists, please check raspberry pi onboard wifi card/wifi dongle"
+  when: "'wlan0' not in ansible_interfaces"
+
 - name: Access Point | Update and upgrade apt packages
   apt:
-    upgrade: yes
+    upgrade: 'yes'
     update_cache: yes
 
 - name: Access Point | Install requiered packages
@@ -21,6 +29,19 @@
 #  include_role:
 #    name: reboot_raspberry
 
+- name: Access Point | Check for dhcpcd.conf backup
+  ansible.builtin.stat:
+    path: /etc/dhcpcd.conf
+  register: dhcpcd_stat_result
+
+- name: Access Point | Set dhcpcd.conf backup
+  ansible.builtin.copy:
+    src: /etc/dhcpcd.conf
+    dest: /etc/dhcpcd.conf.orig
+    mode: '0644'
+    remote_src: yes
+  when: not dhcpcd_stat_result.stat.exists
+
 - name: Access Point | Set dhcpcd.conf file
   template:
     src: dhcpcd.conf.j2
@@ -29,12 +50,18 @@
     group: root
     mode: 644
 
-- name: Access Point | Restart dhcpcd and enable it
-  systemd:
-    state: restarted
-    daemon_reload: yes
-    name: dhcpcd.service
-    enabled: yes
+- name: Access Point | check for dnsmasq.conf backup
+  ansible.builtin.stat:
+    path: /etc/dnsmasq.conf.orig
+  register: dnsmasq_stat_result
+
+- name: Access Point | Copy file with owner and permissions
+  ansible.builtin.copy:
+    src: /etc/dnsmasq.conf
+    dest: /etc/dnsmasq.conf.orig
+    mode: '0644'
+    remote_src: yes
+  when: not dnsmasq_stat_result.stat.exists
 
 - name: Access Point | Set dnsmasq.conf file
   template:
@@ -71,6 +98,9 @@
     state: absent
   when: hostapd_link_exists.stat.exists
 
+- name: Access Point | Unblock wlan
+  shell: rfkill unblock wlan
+
 - name: Access Point | Restart hostapd, dnsmasq and enable them
   systemd:
     state: restarted
@@ -80,25 +110,3 @@
   with_items:
     - hostapd
     - dnsmasq
-
-- name: Access Point | Set sysctl.conf file
-  template:
-    src: sysctl.conf.j2
-    dest: /etc/sysctl.conf
-    owner: root
-    group: root
-    mode: 644
-
-- name: Access Point | Update iptables
-  shell: iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-
-- name: Access Point | Update iptables
-  shell: sh -c "iptables-save > /etc/iptables.ipv4.nat"
-
-- name: Access Point | Set rc.local file
-  template:
-    src: rc.local.j2
-    dest: /etc/rc.local
-    owner: root
-    group: root
-    mode: 733
