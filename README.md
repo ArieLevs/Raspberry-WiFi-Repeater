@@ -35,8 +35,8 @@ This guide assumes the OS is a **clean** installation and running, with the Wi-F
                  +-------------+          +-----------------+          +-------------+
 ```
 
-Automatic Installing via Ansible:
------------------------
+Automatic Installation via Ansible:
+-----------------------------------
 Execute from project root directory  
 (note for the `,` below, or the ip/dns will be considered a hosts inventory filename)
 the configured device ip from above example is `10.0.0.18`
@@ -69,7 +69,7 @@ If you connected via ethernet cable (to lets say `10.0.0.37`) update relevant ip
 the `ssid_name` and `ssid_pass` should contain your home Wi-Fi access (wlan0)
 ```shell
 ansible-playbook -u pi --ask-pass \
-    -i "10.99.0.58," \
+    -i "10.0.0.18," \
     ansible/setup_repeater.yaml \
     -e ap_ssid_name="AP_SSID>" \
     -e ap_ssid_pass="<AP_PASSWORD>" \
