@@ -1,6 +1,7 @@
 
 Raspberry pi as Wi-Fi repeater
 ===============================
+[![](https://img.shields.io/github/license/ArieLevs/Raspberry-WiFi-Repeater.svg)](https://github.com/ArieLevs/Raspberry-WiFi-Repeater/blob/master/LICENSE)
 
 This is a simple guide to set Raspberry pi as Wi-Fi repeater, 
 I know there are many guides out there, [including the official](https://github.com/raspberrypi/documentation/blob/master/configuration/wireless/access-point-routed.md), 
