@@ -1,9 +1,10 @@
 
-- name: Bridge | Identify Network Interfaces
+- name: Access Point | Identify Network Interfaces
   debug:
     msg: "Raspberry pi has these interfaces: {{ ansible_interfaces }}"
 
-- fail:
+- name: Access Point | Fail job if wlan0 not detected
+  fail:
     msg: "wlan0 does not exists, please check raspberry pi onboard wifi card/wifi dongle"
   when: "'wlan0' not in ansible_interfaces"
 
@@ -24,10 +25,6 @@
   with_items:
     - hostapd
     - dnsmasq
-
-#- name: Access Point | Reboot
-#  include_role:
-#    name: reboot_raspberry
 
 - name: Access Point | Check for dhcpcd.conf backup
   ansible.builtin.stat:

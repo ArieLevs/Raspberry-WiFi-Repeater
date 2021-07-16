@@ -1,6 +1,7 @@
 
 Raspberry pi as Wi-Fi repeater
 ===============================
+[![](https://img.shields.io/github/license/ArieLevs/Raspberry-WiFi-Repeater.svg)](https://github.com/ArieLevs/Raspberry-WiFi-Repeater/blob/master/LICENSE)
 
 This is a simple guide to set Raspberry pi as Wi-Fi repeater, 
 I know there are many guides out there, [including the official](https://github.com/raspberrypi/documentation/blob/master/configuration/wireless/access-point-routed.md), 
@@ -15,7 +16,7 @@ Let's assume your home lan address is 10.0.0.0/24,
 We will extend this network using another lan at address 10.0.1.0/24.
 
 This guide assumes the OS is a **clean** installation and running, with the Wi-Fi\ethernet interface to the router "10.0.0.0/24" is set up.
-```
+```text
                                                this interface is being configured
                                                     (10.0.1.0/24 network)
 # Option 1                                                    |
@@ -41,7 +42,7 @@ Execute from project root directory
 (note for the `,` below, or the ip/dns will be considered a hosts inventory filename)
 the configured device ip from above example is `10.0.0.18`
 
-* if updating country variable make sure country is a [valid Alpha-2 code ISO 3166-1 country codes](https://en.wikipedia.org/wiki/ISO_3166-1)
+* if updating country variable make sure country is a [valid Alpha-2 code ISO 3166-1 country code](https://en.wikipedia.org/wiki/ISO_3166-1)
 * Custom access point CIDR can be provided by passing these variables: (view [defaults](ansible/roles/setup_raspberry_access_point/defaults/main.yaml))
   ```
   ap_ip_addr="10.0.1.1/24"
@@ -66,7 +67,7 @@ ansible-playbook -u pi --ask-pass \
 With option two you bridge `wlan0 <-> wlan1` and probably want to ssh to raspberry via the Wi-Fi interface (`10.0.0.8`),
 in this case you should manually set up `wpa_supplicant` as described below.  
 If you connected via ethernet cable (to lets say `10.0.0.37`) update relevant ip host.  
-the `ssid_name` and `ssid_pass` should contain your home Wi-Fi access (wlan0)
+the `ssid_name` and `ssid_pass` should contain your home Wi-Fi access.
 ```shell
 ansible-playbook -u pi --ask-pass \
     -i "10.0.0.18," \
@@ -76,7 +77,6 @@ ansible-playbook -u pi --ask-pass \
     -e ssid_name="<LAN_SSID>" \
     -e ssid_pass="<LAN_PASSWORD>"
 ```
-
 * default password for `pi` user is: `raspberry`
 
 Manual Installation:
@@ -91,7 +91,7 @@ then a bridge (br0) will bridge the interfaces.
 
 for option 2 **only** set up (not needed when using eth0 connection to router), 
 provide your home SSID and password `sudo vi /etc/wpa_supplicant/wpa_supplicant.conf`
-```
+```text
 # update with relevant country
 country=US
 network={
@@ -110,13 +110,13 @@ sudo apt-get install dnsmasq hostapd bridge-utils
 Now configure a static IP for wlan1 (or eth0) and static IP for wlan0 `sudo vi /etc/dhcpcd.conf`
 Add to the end of file lines:
 ```shell
-## If using static IP with additional wifi
+## If using static IP with additional wifi (optional)
 #interface wlan1
 #    static ip_address=10.0.0.2/24
 #    static routers=10.0.0.1
 #    static domain_name_servers=10.0.0.1 8.8.8.8
 
-## If using static IP with ethernet
+## If using static IP with ethernet (optional)
 #interface eth0
 #    static ip_address=10.0.0.2/24
 #    static routers=10.0.0.1
@@ -168,7 +168,7 @@ rsn_pairwise=CCMP
 Execute `sudo vi /etc/default/hostapd` and replace line #DAEMON_CONF with
 `DAEMON_CONF="/etc/hostapd/hostapd.conf"`
 
-Ensure wireless operation to [comply](https://wireless.wiki.kernel.org/en/developers/regulatory/statement) regulations
+Ensure wireless operation ([comply regulations](https://wireless.wiki.kernel.org/en/developers/regulatory/statement))
 ```shell
 sudo rfkill unblock wlan
 ```
@@ -182,7 +182,7 @@ sudo systemctl start dnsmasq
 Add Routing
 -----------
 type `sudo vi /etc/sysctl.conf` and uncommon line:
-```
+```text
 net.ipv4.ip_forward=1
 ```
 Then run

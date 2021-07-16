@@ -14,3 +14,4 @@
   roles:
     - setup_raspberry_access_point
     - setup_raspberry_repeater
+    - reboot_raspberry
