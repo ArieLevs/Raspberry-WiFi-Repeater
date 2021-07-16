@@ -9,7 +9,8 @@
     msg: "Since wlan1 exists, setting up bridge between wlan0 and wlan1"
   when: "'wlan1' in ansible_interfaces"
 
-- fail:
+- name: Bridge | Fail job if missing parameters
+  fail:
     msg: "wlan1 exists, but no connection data provided, please pass ssid_name/ssid_pass variables"
   when: "'wlan1' in ansible_interfaces and (ssid_name is undefined or ssid_pass is undefined)"
 
@@ -28,7 +29,7 @@
     pkg: ['bridge-utils']
     state: latest
 
-- name: Access Point | Set sysctl.conf file
+- name: Bridge | Set sysctl.conf file
   template:
     src: sysctl.conf.j2
     dest: /etc/sysctl.conf
@@ -72,6 +73,3 @@
     group: root
     mode: 644
   when: "'wlan1' in ansible_interfaces"
-
-- name: Bridge | Reboot the machine
-  reboot:

@@ -1,19 +1,23 @@
 ---
-  - name: reboot
-    shell: shutdown -r
+  - name: Restart | Reboot the machine
+    reboot:
+        reboot_timeout: 180
 
-  - name: pause 45 seconds
-    pause: seconds=45
+  #- name: Restart | Wait 180 seconds, but only start checking after 30 seconds
+  #  wait_for_connection:
+  #      delay: 30
+  #      timeout: 180
 
-  - name: wait for host respond to ping
-    local_action: shell ansible -u pi -m ping {{ inventory_hostname }}
-    register: result
-    until: result.rc == 0
-    retries: 30
-    delay: 10
+  - name: Restart | Get up time
+    ansible.builtin.shell: uptime
+    register: up_time
 
-  - name: print up time
-    shell: uptime
+  - name: Restart | Get kernel version
+    ansible.builtin.shell: uname -sr
+    register: kernel
 
-  - name: print kernel version
-    shell: uname -sr
+  - name: Restart | Just print command output
+    ansible.builtin.debug:
+        msg:
+            - "System is up and running from {{ up_time.stdout }}"
+            - "System kernel version is {{ kernel.stdout }}"
