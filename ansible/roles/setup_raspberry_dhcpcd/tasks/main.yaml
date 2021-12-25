@@ -1,0 +1,31 @@
+
+- name: DHCPCD | Check for dhcpcd.conf backup
+  ansible.builtin.stat:
+    path: /etc/dhcpcd.conf
+  register: dhcpcd_stat_result
+
+- name: DHCPCD | Set dhcpcd.conf backup
+  ansible.builtin.copy:
+    src: /etc/dhcpcd.conf
+    dest: /etc/dhcpcd.conf.orig
+    mode: '0644'
+    remote_src: yes
+  when: not dhcpcd_stat_result.stat.exists
+
+- name: DHCPCD | Set dhcpcd.conf file
+  template:
+    src: dhcpcd.conf.routed.j2
+    dest: /etc/dhcpcd.conf
+    owner: root
+    group: root
+    mode: 644
+  when: extended_network is not True
+
+- name: DHCPCD | Set dhcpcd.conf file
+  template:
+    src: dhcpcd.conf.extended.j2
+    dest: /etc/dhcpcd.conf
+    owner: root
+    group: root
+    mode: 644
+  when: extended_network is True

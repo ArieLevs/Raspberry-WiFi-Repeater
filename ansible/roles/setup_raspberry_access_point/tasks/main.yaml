@@ -25,27 +25,6 @@
   with_items:
     - hostapd
 
-- name: Access Point | Check for dhcpcd.conf backup
-  ansible.builtin.stat:
-    path: /etc/dhcpcd.conf
-  register: dhcpcd_stat_result
-
-- name: Access Point | Set dhcpcd.conf backup
-  ansible.builtin.copy:
-    src: /etc/dhcpcd.conf
-    dest: /etc/dhcpcd.conf.orig
-    mode: '0644'
-    remote_src: yes
-  when: not dhcpcd_stat_result.stat.exists
-
-- name: Access Point | Set dhcpcd.conf file
-  template:
-    src: dhcpcd.conf.j2
-    dest: /etc/dhcpcd.conf
-    owner: root
-    group: root
-    mode: 644
-
 - name: Access Point | Set hostapd.conf file
   template:
     src: hostapd.conf.j2
