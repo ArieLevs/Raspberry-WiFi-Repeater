@@ -1,6 +1,11 @@
 
+- name: Extender | Install requiered packages
+  apt:
+    pkg: ['bridge-utils']
+    state: latest
+
 - name: Extender | Create br0 bridge
-  shell: sudo brctl addbr br0
+  shell: brctl addbr br0
   ignore_errors: yes
 
 - name: Extender | Set interfaces file
@@ -14,7 +19,9 @@
 - name: Extender | Create bridge with eth0
   shell: brctl addif br0 eth0
   when: "'wlan1' not in ansible_interfaces"
+  ignore_errors: yes
 
 - name: Extender | Create bridge with wlan1
   shell: brctl addif br0 wlan1
   when: "'wlan1' in ansible_interfaces"
+  ignore_errors: yes

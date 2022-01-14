@@ -13,6 +13,6 @@
 
   roles:
     - setup_raspberry_access_point
-    - { role: "setup_raspberry_extender", when: (extended_network is True) }
-    - { role: "setup_raspberry_repeater", when: (extended_network is not True) }
     - setup_raspberry_dhcpcd
+    - { role: "setup_raspberry_extender", when: (extended_network | bool) }
+    - { role: "setup_raspberry_repeater", when: (not extended_network | bool) }

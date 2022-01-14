@@ -130,11 +130,14 @@ Once raspberry was able to connect to the router (with internet access), do
 ```shell
 sudo apt-get update
 sudo apt-get upgrade
-sudo apt-get install hostapd bridge-utils
 ```
 
 Configure Access Point (hostapd)
 --------------------------------
+Install hostapd
+```shell
+sudo apt-get install hostapd
+```
 type `sudo vi /etc/hostapd/hostapd.conf`
 And append
 ```shell
@@ -182,6 +185,10 @@ Add Extended Network
 --------
 * If setting an extended network (options 3/4):
 
+Install bridge-utils
+```shell
+sudo apt-get install bridge-utils
+```
 crete br0 bridge
 ```shell
 sudo brctl addbr br0

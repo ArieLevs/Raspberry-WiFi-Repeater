@@ -1,7 +1,7 @@
 country_code={{ country | default(default_country) }}
 interface=wlan0
 
-{% if extended_network is True %}
+{% if extended_network | bool %}
 bridge=br0
 {% else %}
 driver=nl80211

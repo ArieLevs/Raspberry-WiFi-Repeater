@@ -19,7 +19,7 @@
     owner: root
     group: root
     mode: 644
-  when: extended_network is not True
+  when: not extended_network | bool
 
 - name: DHCPCD | Set dhcpcd.conf file
   template:
@@ -28,4 +28,4 @@
     owner: root
     group: root
     mode: 644
-  when: extended_network is True
+  when: extended_network | bool
