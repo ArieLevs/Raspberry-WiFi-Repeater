@@ -1,6 +1,11 @@
 country_code={{ country | default(default_country) }}
 interface=wlan0
+
+{% if extended_network is True %}
+bridge=br0
+{% else %}
 driver=nl80211
+{% endif %}
 
 ssid={{ ap_ssid_name | default(default_ap_ssid_name) }}
 hw_mode=g
