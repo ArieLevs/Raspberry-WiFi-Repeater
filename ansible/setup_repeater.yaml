@@ -3,6 +3,9 @@
   hosts: all
   become: true
 
+  vars:
+    extended_network: False
+
 #  vars_prompt:
 #    - name: ap_ssid_name
 #      prompt: "Enter SSID for access point setup"
@@ -16,3 +19,4 @@
     - setup_raspberry_dhcpcd
     - { role: "setup_raspberry_extender", when: (extended_network | bool) }
     - { role: "setup_raspberry_repeater", when: (not extended_network | bool) }
+    - reboot_raspberry

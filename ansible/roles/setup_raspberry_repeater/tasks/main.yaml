@@ -26,22 +26,22 @@
 
 - name: Bridge | Install requiered packages
   apt:
-    pkg: ['bridge-utils', 'dnsmasq']
+    pkg: ['bridge-utils', 'dnsmasq', 'iptables']
     state: latest
 
-- name: Access Point | Stop dnsmasq, if running
+- name: Bridge | Stop dnsmasq, if running
   systemd:
     name: "{{ item }}.service"
     state: stopped
   with_items:
     - dnsmasq
 
-- name: Access Point | check for dnsmasq.conf backup
+- name: Bridge | check for dnsmasq.conf backup
   ansible.builtin.stat:
     path: /etc/dnsmasq.conf.orig
   register: dnsmasq_stat_result
 
-- name: Access Point | Copy file with owner and permissions
+- name: Bridge | Copy file with owner and permissions
   ansible.builtin.copy:
     src: /etc/dnsmasq.conf
     dest: /etc/dnsmasq.conf.orig
@@ -49,7 +49,7 @@
     remote_src: yes
   when: not dnsmasq_stat_result.stat.exists
 
-- name: Access Point | Set dnsmasq.conf file
+- name: Bridge | Set dnsmasq.conf file
   template:
     src: dnsmasq.conf.j2
     dest: /etc/dnsmasq.conf
@@ -93,16 +93,25 @@
     mode: 600
   when: "'wlan1' in ansible_interfaces"
 
-- name: Bridge | Set interfaces file
+- name: Bridge | Set interfaces file eth
   template:
-    src: network_interfaces.j2
-    dest: /etc/network/interfaces
+    src: network_interfaces_eth.j2
+    dest: /etc/network/interfaces.d/raspberry_interfaces
+    owner: root
+    group: root
+    mode: 644
+  when: "'wlan1' not in ansible_interfaces"
+
+- name: Bridge | Set interfaces file wifi
+  template:
+    src: network_interfaces_wifi.j2
+    dest: /etc/network/interfaces.d/raspberry_interfaces
     owner: root
     group: root
     mode: 644
   when: "'wlan1' in ansible_interfaces"
 
-- name: Access Point | Restart dnsmasq and enable
+- name: Bridge | Restart dnsmasq and enable
   systemd:
     state: restarted
     daemon_reload: yes

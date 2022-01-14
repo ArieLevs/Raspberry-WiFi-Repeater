@@ -297,7 +297,7 @@ Edit `sudo vi /etc/rc.local` and append above "exit 0" line
 iptables-restore < /etc/iptables.ipv4.nat
 ```
 
-* **only** if setting `wlan1` append to `/etc/network/interfaces` file:
+* **only** if setting `wlan1` append to `/etc/network/interfaces.d/raspberry_interfaces` file:
     ```
     # Bridge setup
     auto br0

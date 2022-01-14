@@ -11,7 +11,7 @@
 - name: Extender | Set interfaces file
   template:
     src: network_interfaces_bridge.j2
-    dest: /etc/network/interfaces.d/bridge
+    dest: /etc/network/interfaces.d/raspberry_interfaces
     owner: root
     group: root
     mode: 644
