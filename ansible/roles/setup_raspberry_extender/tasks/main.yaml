@@ -1,0 +1,20 @@
+
+- name: Extender | Create br0 bridge
+  shell: sudo brctl addbr br0
+  ignore_errors: yes
+
+- name: Extender | Set interfaces file
+  template:
+    src: network_interfaces_bridge.j2
+    dest: /etc/network/interfaces.d/bridge
+    owner: root
+    group: root
+    mode: 644
+
+- name: Extender | Create bridge with eth0
+  shell: brctl addif br0 eth0
+  when: "'wlan1' not in ansible_interfaces"
+
+- name: Extender | Create bridge with wlan1
+  shell: brctl addif br0 wlan1
+  when: "'wlan1' in ansible_interfaces"
