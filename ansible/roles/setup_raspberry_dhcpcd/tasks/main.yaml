@@ -14,18 +14,8 @@
 
 - name: DHCPCD | Set dhcpcd.conf file
   template:
-    src: dhcpcd.conf.routed.j2
+    src: dhcpcd.conf.j2
     dest: /etc/dhcpcd.conf
     owner: root
     group: root
     mode: 644
-  when: not extended_network | bool
-
-- name: DHCPCD | Set dhcpcd.conf file
-  template:
-    src: dhcpcd.conf.extended.j2
-    dest: /etc/dhcpcd.conf
-    owner: root
-    group: root
-    mode: 644
-  when: extended_network | bool

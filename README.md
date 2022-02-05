@@ -17,13 +17,13 @@ We will extend this network using another lan at address 10.0.1.0/24.
 
 This guide assumes the OS is a **clean** installation and running, with the Wi-Fi\ethernet interface to the router "10.0.0.0/24" is set up.
 ```text
-                                               this interface is being configured
+                                              wlan0 interface is being configured
                                                     (10.0.22.0/24 network)
 # Option 1                                                    |
                                                               |
                  +- Router ----+          +--- Raspberry ---+ /        +- Laptop ----+
                  | DHCP server |          | 10.0.0.18       |/         | WLAN Client |
-(Internet)---WAN-+             +---LAN----|/        WLAN AP +-)))  (((-+             |
+(Internet)---WAN-+             +---LAN----|/       wlan0 AP +-)))  (((-+             |
                  | 10.0.0.0/24 |          |        10.0.22.1|\         | 10.0.22.36  |
                  +-------------+          +-----------------+ |        +-------------+
                                                               |                 
@@ -32,7 +32,7 @@ This guide assumes the OS is a **clean** installation and running, with the Wi-F
 # Option 2                                                    |
                  +- Router ----+          +--- Raspberry ---+ |        +- Laptop ----+
                  | DHCP server |   WiFi   | 10.0.0.18       |/         | WLAN Client |
-(Internet)---WAN-+             +-)))  (((-|/        WLAN AP +-)))  (((-+             |
+(Internet)---WAN-+             +-)))  (((-|/       wlan0 AP +-)))  (((-+             |
                  | 10.0.0.0/24 |          |        10.0.22.1|          | 10.0.22.36  |
                  +-------------+          +-----------------+          +-------------+
 
@@ -41,20 +41,13 @@ This guide assumes the OS is a **clean** installation and running, with the Wi-F
 # Option 3 (extended network)
                  +- Router ----+          +--- Raspberry ---+          +- Laptop ----+
                  | DHCP server |          | 10.0.0.18 (eth0)|          | WLAN Client |
-(Internet)---WAN-+             +---LAN----|/        WLAN AP +-)))  (((-+             |
-                 |             |          |                 |          |             |
-                 | 10.0.0.0/24 |          | br eth0<->wlan0 |          | 10.0.0.36/24|
-                 +-------------+          +-----------------+          +-------------+
-
-# Option 4 (extended network)
-                 +- Router ----+          +--- Raspberry ---+          +- Laptop ----+
-                 | DHCP server |   WiFi   | 10.0.0.18 (eth0)|          | WLAN Client |
-(Internet)---WAN-+             +-)))  (((-|/        WLAN AP +-)))  (((-+             |
+(Internet)---WAN-+             +---LAN----|/       wlan0 AP +-)))  (((-+             |
                  |             |          |                 |\         |             |
                  | 10.0.0.0/24 |          | br eth0<->wlan0 | \        | 10.0.0.36/24|
-                 +-------------+          +-----------------+  |       +-------------+
+                 +-------------+          +-----------------+  \       +-------------+
                                                                |
-                                                this interface is being configured
+                                                               |
+                                                wlan0 interface is being configured
                                                (extend original 10.0.0.0/24 network)
 ```
 
@@ -87,7 +80,7 @@ ansible-playbook -u pi --ask-pass \
     #-e extended_network=True
 ```
 
-### option **2** OR **4** install example:
+### option **2** install example:
 With option two/four you bridge `wlan0 <-> wlan1` and probably want to ssh to raspberry via the Wi-Fi interface (`10.0.0.8`),
 in this case you should manually set up `wpa_supplicant` as described below.  
 If you connected via ethernet cable (to lets say `10.0.0.37`) update relevant ip host.  
@@ -100,8 +93,6 @@ ansible-playbook -u pi --ask-pass \
     -e ap_ssid_pass="<AP_PASSWORD>" \
     -e ssid_name="<LAN_SSID>" \
     -e ssid_pass="<LAN_PASSWORD>"
-    ## add below variable to deploy as an extended network
-    #-e extended_network=True
 ```
 * default password for `pi` user is: `raspberry`
 
@@ -115,7 +106,7 @@ wlan1 or eth0 will connect to your home LAN at 10.0.0.0/24
 wlan0 will create a new network using 10.0.1.0/24, or it will extend your current 10.0.0.0/24 network if you choose to. 
 then a bridge (br0) will bridge the interfaces.
 
-for option 2 **OR** 4 **only** set up (not needed when using eth0 connection to router), 
+for option 2 **only** set up (not needed when using eth0 connection to router), 
 provide your home SSID and password `sudo vi /etc/wpa_supplicant/wpa_supplicant.conf`
 ```text
 # update with relevant country
@@ -145,10 +136,10 @@ And append
 country_code=US
 interface=wlan0
 
-## un-comment below line if setting up extended network (options 3/4)
+## un-comment below line if setting up extended network (options 3)
 # bridge=br0
 
-## comment out below line if setting extended network (options 3/4)
+## comment out below line if setting extended network (options 3)
 driver=nl80211
 
 ssid=[AP_SSID]
@@ -181,58 +172,26 @@ sudo systemctl unmask hostapd
 sudo systemctl start hostapd
 ```
 
-Add Extended Network 
---------
-* If setting an extended network (options 3/4):
-
-Install bridge-utils
-```shell
-sudo apt-get install bridge-utils
-```
-crete br0 bridge
-```shell
-sudo brctl addbr br0
-```
-
-append to `/etc/network/interfaces.d/bridge` file
-```shell
-auto br0
-iface br0 inet dhcp
-bridge_ports eth0 wlan0
-
-## or if setting wlan1 with wlan0 (option 2)
-#bridge_ports wlan1 wlan0
-```
-
+Configure DHCP (dhcpcd)
+--------------------------------
 Configure `sudo vi /etc/dhcpcd.conf`
+* if setting extended network (option 3)
 ```shell
 ## set dhcpcd configure only br0 via DHCP
 ## Add to start of file
 
 denyinterfaces wlan0 eth0
-## with additional wifi 
-#denyinterfaces wlan0 wlan0
+
+## THIS IS CURRENTLY NOT SUPPORTED
+## with additional wifi, add below 3 lines
+#denyinterfaces wlan0 wlan1
+#interface wlan0
+#  nohook wpa_supplicant
 
 ## Add to end of file
 interface br0
 ```
-
-Restart the service `sudo service dhcpcd restart`
-
-Add interface to bridge
-```shell
-## if using wlan0 as connection to router
-#inter=wlan0
-
-sudo brctl addif br0 ${inter}
-```
-
-All set! clients not should be able to connect to the Wi-Fi network chosen at `[AP_SSID]` and get an IP address from extended router.
-
-Add Routing - Repeater - only for routed network (options 1/2)
------------
-
-Configure `sudo vi /etc/dhcpcd.conf`
+* if setting routed network (option 1/2)
 ```shell
 ## configure a static IP for wlan1 (or eth0) and static IP for wlan0
 ## Add to the end of file lines
@@ -253,8 +212,33 @@ interface wlan0
     static ip_address=10.0.1.1/24
     nohook wpa_supplicant
 ```
-
 Restart the service `sudo service dhcpcd restart`
+
+Add Extended Network 
+--------
+* If setting an extended network (options 3/4):
+
+Install bridge-utils
+```shell
+sudo apt-get install bridge-utils
+```
+
+Execute `sudo vi /etc/network/interfaces.d/raspberry_interfaces`
+and add
+```shell
+auto br0
+iface br0 inet dhcp
+bridge_ports eth0 wlan0
+
+## THIS IS CURRENTLY NOT SUPPORTED
+## or if setting wlan1 with wlan0 (option 4)
+#bridge_ports wlan1 wlan0
+```
+
+All set! clients not should be able to connect to the Wi-Fi network chosen at `[AP_SSID]` and get an IP address from extended router.
+
+Add Routing - Repeater - only for routed network (options 1/2)
+-----------
 
 Install dnsmasq
 ```shell
@@ -278,9 +262,14 @@ sudo systemctl start dnsmasq
 ```
 
 #### Add routing
+```shell
+sudo apt-get install iptables
+```
+
 type `sudo vi /etc/sysctl.conf` and uncommon line:
 ```text
 net.ipv4.ip_forward=1
+net.ipv6.conf.all.forwarding=1
 ```
 Then run
 ```shell

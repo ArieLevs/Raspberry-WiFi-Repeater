@@ -14,6 +14,12 @@
 #      prompt: "Enter password for access point setup"
 #      private: no
 
+  pre_tasks:
+    - name: Fail job if not supported setup
+      fail:
+        msg: "Extended network when bridging between two wireless interfaces is not currently supported, extended network must be connected to eth0 and wlan0"
+      when: "'wlan1' in ansible_interfaces and extended_network"
+
   roles:
     - setup_raspberry_access_point
     - setup_raspberry_dhcpcd

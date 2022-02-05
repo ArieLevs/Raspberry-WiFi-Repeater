@@ -55,8 +55,19 @@ slaac private
 #denyinterfaces eth0
 #{% endif %}
 
+{% if extended_network | bool %}
+{% if 'wlan1' in ansible_interfaces %}
+denyinterfaces wlan0 wlan1
+{% else %}
+denyinterfaces wlan0 eth0
+{% endif %}
+{% endif %}
+
 interface wlan0
+    {% if not extended_network | bool %}
+    # Only if setting up routed network, then wlan0 should have static address
     static ip_address={{ ap_ip_addr | default(default_ap_ip_addr) }}
+    {% endif %}
     nohook wpa_supplicant
 
 # It is possible to fall back to a static IP if DHCP fails:
@@ -65,6 +76,10 @@ interface wlan0
 #static ip_address=192.168.1.23/24
 #static routers=192.168.1.1
 #static domain_name_servers=192.168.1.1
+
+{% if extended_network | bool %}
+interface br0
+{% endif %}
 
 # fallback to static profile on eth0
 #interface eth0
