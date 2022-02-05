@@ -1,0 +1,7 @@
+auto br0
+iface br0 inet dhcp
+{% if 'wlan1' in ansible_interfaces %}
+bridge_ports wlan1 wlan0
+{% else %}
+bridge_ports eth0 wlan0
+{% endif %}

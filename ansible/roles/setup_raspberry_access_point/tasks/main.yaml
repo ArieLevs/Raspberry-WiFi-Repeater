@@ -15,58 +15,15 @@
 
 - name: Access Point | Install requiered packages
   apt:
-    pkg: ['dnsmasq', 'hostapd']
+    pkg: ['hostapd']
     state: latest
 
-- name: Access Point | Stop hostapd, dnsmasq, if running
+- name: Access Point | Stop hostapd, if running
   systemd:
     name: "{{ item }}.service"
     state: stopped
   with_items:
     - hostapd
-    - dnsmasq
-
-- name: Access Point | Check for dhcpcd.conf backup
-  ansible.builtin.stat:
-    path: /etc/dhcpcd.conf
-  register: dhcpcd_stat_result
-
-- name: Access Point | Set dhcpcd.conf backup
-  ansible.builtin.copy:
-    src: /etc/dhcpcd.conf
-    dest: /etc/dhcpcd.conf.orig
-    mode: '0644'
-    remote_src: yes
-  when: not dhcpcd_stat_result.stat.exists
-
-- name: Access Point | Set dhcpcd.conf file
-  template:
-    src: dhcpcd.conf.j2
-    dest: /etc/dhcpcd.conf
-    owner: root
-    group: root
-    mode: 644
-
-- name: Access Point | check for dnsmasq.conf backup
-  ansible.builtin.stat:
-    path: /etc/dnsmasq.conf.orig
-  register: dnsmasq_stat_result
-
-- name: Access Point | Copy file with owner and permissions
-  ansible.builtin.copy:
-    src: /etc/dnsmasq.conf
-    dest: /etc/dnsmasq.conf.orig
-    mode: '0644'
-    remote_src: yes
-  when: not dnsmasq_stat_result.stat.exists
-
-- name: Access Point | Set dnsmasq.conf file
-  template:
-    src: dnsmasq.conf.j2
-    dest: /etc/dnsmasq.conf
-    owner: root
-    group: root
-    mode: 644
 
 - name: Access Point | Set hostapd.conf file
   template:
@@ -98,12 +55,12 @@
 - name: Access Point | Unblock wlan
   shell: rfkill unblock wlan
 
-- name: Access Point | Restart hostapd, dnsmasq and enable them
+- name: Access Point | Restart hostapd and enable
   systemd:
     state: restarted
     daemon_reload: yes
     name: "{{ item }}.service"
     enabled: yes
+    masked: no
   with_items:
     - hostapd
-    - dnsmasq
