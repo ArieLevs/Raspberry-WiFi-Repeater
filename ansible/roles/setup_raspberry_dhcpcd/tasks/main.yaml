@@ -1,3 +1,23 @@
+- name: DHCPCD | Install required packages
+  apt:
+    pkg: ['dhcpcd']
+    state: latest
+
+- name: DHCPCD | Check if NetworkManager is enabled
+  ansible.builtin.systemd_service:
+    name: NetworkManager
+    enabled: yes
+  check_mode: yes
+  register: nm_service_enabled
+
+- name: DHCPCD | Set dhcpcd as client for NetworkManager
+  template:
+    src: NetworkManager.dhcpcd.conf.j2
+    dest: /etc/NetworkManager/conf.d/dhcpcd.conf
+    owner: root
+    group: root
+    mode: 644
+  when: "'inactive' not in nm_service_enabled.status.ActiveState"
 
 - name: DHCPCD | Check for dhcpcd.conf backup
   ansible.builtin.stat:

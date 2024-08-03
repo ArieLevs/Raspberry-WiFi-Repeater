@@ -1,4 +1,3 @@
-
 default_ap_ip_addr: 10.0.1.1/24
 default_ap_start_ip_addr: 10.0.1.2
 default_ap_end_ip_addr: 10.0.1.100

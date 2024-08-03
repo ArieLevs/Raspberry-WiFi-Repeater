@@ -4,10 +4,12 @@ Raspberry pi as Wi-Fi repeater
 [![](https://img.shields.io/github/license/ArieLevs/Raspberry-WiFi-Repeater.svg)](https://github.com/ArieLevs/Raspberry-WiFi-Repeater/blob/master/LICENSE)
 
 This is a simple guide to set Raspberry pi as Wi-Fi repeater, 
-I know there are many guides out there, [including the official](https://github.com/raspberrypi/documentation/blob/develop/documentation/asciidoc/computers/configuration/access-point-routed.adoc), 
+I know there are many guides out there, [including the official](https://github.com/raspberrypi/documentation/blob/develop/documentation/asciidoc/computers/configuration/host-wireless-network.adoc), 
 but none of them worked 100% without modifications.
 
-Based on: `Linux raspberrypi 5.10.63-v7+` (Raspbian 10 buster)
+Based on: `Linux 6.6.31+rpt-rpi-2712` (Debian GNU/Linux 12 bookworm)
+* support for older versions:
+  * [`Linux raspberrypi 5.10.63-v7+` (Raspbian 10 buster)](https://github.com/ArieLevs/Raspberry-WiFi-Repeater/releases/tag/buster-5.10.63-v7%2B)
 
 In order to achieve our goal we will need to set up two separate interfaces,
 You will need additional Wi-Fi usb device or use the ethernet connection.
@@ -174,6 +176,14 @@ sudo systemctl start hostapd
 
 Configure DHCP (dhcpcd)
 --------------------------------
+By default, NetworkManager uses its internal DHCP client,  
+if you plan yo keep using NM (activated), please set `sudo vi /etc/NetworkManager/conf.d/dhcpcd.conf` and add:
+
+```shell
+[main]
+dhcp=dhcpcd
+```
+
 Configure `sudo vi /etc/dhcpcd.conf`
 * if setting extended network (option 3)
 ```shell
@@ -235,7 +245,7 @@ bridge_ports eth0 wlan0
 #bridge_ports wlan1 wlan0
 ```
 
-All set! clients not should be able to connect to the Wi-Fi network chosen at `[AP_SSID]` and get an IP address from extended router.
+All set! clients should now be able to connect to the Wi-Fi network chosen at `[AP_SSID]` and get an IP address from extended router.
 
 Add Routing - Repeater - only for routed network (options 1/2)
 -----------

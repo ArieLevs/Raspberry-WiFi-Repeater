@@ -13,7 +13,7 @@
     upgrade: 'yes'
     update_cache: yes
 
-- name: Access Point | Install requiered packages
+- name: Access Point | Install required packages
   apt:
     pkg: ['hostapd']
     state: latest
